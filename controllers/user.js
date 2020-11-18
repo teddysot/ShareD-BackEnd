@@ -41,10 +41,10 @@ const getUserById = async (req, res) => {
     const userId = req.params.userId;
     const targetUser = await db.User.findOne({
         where: { id: userId },
-        attributes: ["id", "name", "profile_url"]
+        attributes: ["username"]
     });
 
-    res.status(200).send({ targetUser })
+    res.status(200).send(targetUser)
 };
 
 module.exports = {
