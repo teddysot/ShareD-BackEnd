@@ -7,5 +7,6 @@ const auth = passport.authenticate("jwt-auth", { session: false });
 router.post("/login", login);
 router.post("/register", register);
 router.get("/:userId", auth, getUserById);
+router.get("/cake", auth, getUserById);
 
 module.exports = router;
