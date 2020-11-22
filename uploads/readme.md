@@ -1,0 +1,1 @@
+Needed this file for git to track empty uploads folder

@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 
 const register = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, email, phone_number, name, profile_url, role } = req.body;
     const targetUser = await db.User.findOne({ where: { username } });
 
     if (targetUser) {
@@ -15,6 +15,11 @@ const register = async (req, res) => {
 
         await db.User.create({
             username,
+            email,
+            phone_number,
+            name,
+            profile_url,
+            role,
             password: hashedPW
         });
 

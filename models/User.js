@@ -22,22 +22,19 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    isConfirmed: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false
-    },
-    otp: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     profile_url: {
       type: DataTypes.STRING,
-      allowNull: false
     },
     role: {
       type: DataTypes.ENUM("Customer", "Restaurant", "Kitchen", "Admin"),
       allowNull: false
-    }
+    },
+    otp: {
+      type: DataTypes.STRING,
+    },
+    isConfirmed: {
+      type: DataTypes.BOOLEAN,
+    },
   }, {
     tableName: "Users",
     timestamps: false
