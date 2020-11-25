@@ -55,8 +55,9 @@ io.on("connection", (socket) => {
         console.log(`Disconnected: [${socket.userId}]${socket.userName}`);
     });
 
-    socket.on('createTable', () => {
+    socket.on('createTable', (res) => {
 
+        const {tableNumber} = res
         // Generate Code
         const tableCode = nanoid(6);
         
@@ -68,8 +69,9 @@ io.on("connection", (socket) => {
 
         console.log(`createTable ${newTable.code} ${newTable.users}`);
         // Update Database
-
-
+        db.Table.create({table_number:tableNumber, total_price: 0, status:"Unpaid", room_code: tableCode})
+        res.status(201).send(newPost);
+        
         tableList.push(newTable)
         console.log('tableCode',tableCode)
         socket.emit('createTable', { tableCode })
