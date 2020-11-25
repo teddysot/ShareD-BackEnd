@@ -25,7 +25,7 @@ const server = app.listen(process.env.PORT, () => {
     console.log("Server listening on port " + process.env.PORT);
 });
 
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync({ force: false }).then(() => {
     console.log("Completed Connect And Sync");
 });
 
@@ -43,10 +43,35 @@ io.use(async (socket, next) => {
     } catch (err) { }
 });
 
+const users = []
+const tableList = []
+
+const { nanoid } = require('nanoid')
+
 io.on("connection", (socket) => {
     console.log(`Connected: [${socket.userId}]${socket.userName}`);
 
     socket.on("disconnect", () => {
         console.log(`Disconnected: [${socket.userId}]${socket.userName}`);
     });
+
+    socket.on('createTable', () => {
+
+        // Generate Code
+        const tableCode = nanoid(6);
+        
+        // Create Table
+        const newTable = {
+            users: [],
+            code: tableCode// Code จากข้างบน
+        }
+
+        console.log(`createTable ${newTable.code} ${newTable.users}`);
+        // Update Database
+
+
+        tableList.push(newTable)
+        console.log('tableCode',tableCode)
+        socket.emit('createTable', { tableCode })
+    })
 });
