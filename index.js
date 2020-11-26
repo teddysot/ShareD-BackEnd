@@ -44,12 +44,53 @@ io.use(async (socket, next) => {
 });
 
 const users = []
-const tableList = []
+let tableList = []
 
 const { nanoid } = require('nanoid')
 
 io.on("connection", (socket) => {
     console.log(`Connected: [${socket.userId}]${socket.userName}`);
+    // หาโต๊ะที่ยัง active ใน database
+    db.Table.findAll({ where: { status: "Active" }, attributes: ["table_number", "room_code", "id"] })
+        .then((res) => {
+            const newTableList = []
+            // loop ไปทีละโต๊ะ
+            res.map((table) => {
+                const { id, table_number, room_code } = table
+                const newUsers = []
+                //หา user ว่าใครอยู่ในโต๊ะนั้นบ้าง
+                db.UserTable.findAll({ where: { table_id: id }, attributes: ["user_id"] })
+                    .then((res) => {
+                        //loop เข้าไปในข้อมูลของ user ในโต๊ะนั้น
+                        res.map((user) => {
+                            // หาว่า user นั้นชื่อว่าอะไรใน database
+                            db.User.findOne({ where: { id: user.user_id }, attributes: ["name", "profile_url"] })
+                                .then((res) => {
+                                     // หาชื่อจริง
+                                    const firstName = res.name.split(' ')[0]
+
+                                    const user = {
+                                        username: firstName,
+                                        profile_url: res.profile_url
+                                    }
+                                    newUsers.push(user)
+                                })
+                        })
+                    })
+                // ดึงค่ามาใส่ในโต๊ะใหม่
+                const newTable = {
+                    users: newUsers,
+                    number: table_number,
+                    code: room_code// Code จากข้างบน
+                }
+                // เพิ่มเข้าไปใน list ใหม่ของโต๊ะ
+                newTableList.push(newTable)
+                // เปลี่ยน list โต๊ะเก่าเป็น list โต๊ะใหม่
+                tableList = newTableList
+            })
+            // ส่งข้อมูลไปให้ fontend ของทุกคน
+            io.emit('fetchTable', { tableList })
+        })
 
     socket.on("disconnect", () => {
         console.log(`Disconnected: [${socket.userId}]${socket.userName}`);
@@ -64,6 +105,7 @@ io.on("connection", (socket) => {
         // Create Table
         const newTable = {
             users: [],
+            number: tableNumber,
             code: tableCode// Code จากข้างบน
         }
 
@@ -79,7 +121,6 @@ io.on("connection", (socket) => {
                 socket.emit('createTable', { status: 400 })
             })
 
-
-
+        io.emit('fetchTable', { tableList })
     })
 });
