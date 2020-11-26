@@ -57,23 +57,29 @@ io.on("connection", (socket) => {
 
     socket.on('createTable', (res) => {
 
-        const {tableNumber} = res
+        const { tableNumber } = res
         // Generate Code
         const tableCode = nanoid(6);
-        
+
         // Create Table
         const newTable = {
             users: [],
             code: tableCode// Code จากข้างบน
         }
 
-        console.log(`createTable ${newTable.code} ${newTable.users}`);
+        console.log(`createTable ${tableCode} ${tableNumber}`);
         // Update Database
-        db.Table.create({table_number:tableNumber, total_price: 0, status:"Unpaid", room_code: tableCode})
-        res.status(201).send(newPost);
-        
-        tableList.push(newTable)
-        console.log('tableCode',tableCode)
-        socket.emit('createTable', { tableCode })
+        db.Table.create({ table_number: tableNumber, room_code: tableCode, total_price: 0, status: "Active" })
+            .then((res) => {
+                tableList.push(newTable)
+                console.log('tableCode', tableCode)
+                socket.emit('createTable', { tableCode, status: 200 })
+            })
+            .catch((err) => {
+                socket.emit('createTable', { status: 400 })
+            })
+
+
+
     })
 });
