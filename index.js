@@ -25,7 +25,7 @@ const server = app.listen(process.env.PORT, () => {
     console.log("Server listening on port " + process.env.PORT);
 });
 
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync({ force: false }).then(() => {
     console.log("Completed Connect And Sync");
 });
 
@@ -43,10 +43,54 @@ io.use(async (socket, next) => {
     } catch (err) { }
 });
 
+const users = []
+const tableList = []
+/*
+tableList
+    {
+        code: '324sf'
+        users: ['cake','pup']
+    }
+*/
+
 io.on("connection", (socket) => {
     console.log(`Connected: [${socket.userId}]${socket.userName}`);
 
     socket.on("disconnect", () => {
         console.log(`Disconnected: [${socket.userId}]${socket.userName}`);
     });
+
+    // Input Code
+    socket.on("joinTable", (res) => {
+        const { tableCode } = res
+        // หาใน database ว่ามี Table Code อยู่ไหม
+        db.Table.findOne({ where: { room_code: tableCode } })
+            // หาเจอ
+            .then(res => {
+                // เข้าลูปหา table code ใน table list
+                tableList.map(table => {
+                    // ให้ตรวจสอบ tableCode ถ้ามีก็ส่งข้อมูลไปบรรทัดต่อไป
+                    if (table.code === tableCode) {
+                        // ข้อมูล user เก็บไว้ใน array users
+                        table.users.push(socket.userName)
+                        // join เข้าห้อง
+                        socket.join(`${tableCode}`)
+                        // io.in ส่งให้ทุกคนที่อยู่ในห้อง .emit ส่งรายชื่อคนในห้องกลับไปหาไปฝั่ง front
+                        io.in(`${tableCode}`).emit('joinTable', { users: table.users })
+                    }
+                    // หาใน server ไม่เจอ
+                    else {
+                        socket.emit("joinTable", 404)
+                    }
+                })
+            })
+            // หาใน database ไม่เจอ
+            .catch(err => {
+                // ถ้าหาไม่เจอส่งข้อความแจ้ง users ว่าไม่มีข้อมูล
+                socket.emit("joinTable", 404)
+            })
+
+
+    })
 });
+
