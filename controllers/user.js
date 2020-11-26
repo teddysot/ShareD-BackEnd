@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 
 const register = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, email, phone_number, name, profile_url, role, isConfirmed } = req.body;
     const targetUser = await db.User.findOne({ where: { username } });
 
     if (targetUser) {
@@ -15,6 +15,12 @@ const register = async (req, res) => {
 
         await db.User.create({
             username,
+            email,
+            phone_number,
+            name,
+            profile_url,
+            role,
+            isConfirmed,
             password: hashedPW
         });
 
@@ -25,10 +31,23 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const { username, password } = req.body;
     const targetUser = await db.User.findOne({ where: { username } });
+    const name = targetUser.name.split(' ')
     if (targetUser) {
         if (bcrypt.compareSync(password, targetUser.password)) {
-            const token = jwt.sign({ id: targetUser.id, username: targetUser.username }, process.env.SECRET_KEY, { expiresIn: 3600 });
-            res.status(200).send({ token });
+            const token = jwt.sign({
+                id: targetUser.id
+            }, process.env.SECRET_KEY, { expiresIn: 3600 });
+            res.status(200).send({
+                token,
+                username: targetUser.username,
+                email: targetUser.email,
+                phone_number: targetUser.phone_number,
+                fname: name[0],
+                lname: name[1],
+                profile_url: targetUser.profile_url,
+                role: targetUser.role,
+                isConfirmed: targetUser.isConfirmed
+            });
         } else {
             res.status(400).send({ message: "Username or password incorrect." });
         }

@@ -14,9 +14,11 @@ app.use(fileUpload());
 app.use(express.static("uploads"));
 
 const userRoutes = require("./routes/user")
+const uploadRoutes = require("./routes/upload")
 
 // Routes
 app.use("/user", userRoutes);
+app.use("/upload", uploadRoutes);
 
 // Running Server
 const server = app.listen(process.env.PORT, () => {
