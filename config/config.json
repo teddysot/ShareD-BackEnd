@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": "peelapon333",
+    "password": "",
     "database": "ShareD",
     "host": "127.0.0.1",
     "dialect": "mysql"

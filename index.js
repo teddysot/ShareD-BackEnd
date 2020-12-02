@@ -15,17 +15,19 @@ app.use(express.static("uploads"));
 
 const userRoutes = require("./routes/user")
 const uploadRoutes = require("./routes/upload")
+const menuRoutes = require('./routes/menu')
 
 // Routes
 app.use("/user", userRoutes);
 app.use("/upload", uploadRoutes);
+app.use("/menus", menuRoutes);
 
 // Running Server
 const server = app.listen(process.env.PORT, () => {
     console.log("Server listening on port " + process.env.PORT);
 });
 
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync({ force: false }).then(() => {
     console.log("Completed Connect And Sync");
 });
 
