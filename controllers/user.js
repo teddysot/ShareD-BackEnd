@@ -56,10 +56,7 @@ const login = async (req, res) => {
     if (targetUser && targetUser.isConfirmed) {
         if (bcrypt.compareSync(password, targetUser.password)) {
             const token = jwt.sign({
-                id: targetUser.id
-            }, process.env.SECRET_KEY, { expiresIn: 3600 });
-            res.status(200).send({
-                token,
+                id: targetUser.id,
                 username: targetUser.username,
                 email: targetUser.email,
                 phone_number: targetUser.phone_number,
@@ -68,6 +65,9 @@ const login = async (req, res) => {
                 profile_url: targetUser.profile_url,
                 role: targetUser.role,
                 isConfirmed: targetUser.isConfirmed
+            }, process.env.SECRET_KEY, { expiresIn: 3600 });
+            res.status(200).send({
+                token
             });
         } else {
             res.status(400).send({ message: "Username or password incorrect." });
