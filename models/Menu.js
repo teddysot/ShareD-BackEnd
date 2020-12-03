@@ -8,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.FLOAT,
             allowNull: false
         },
+        image_url: {
+            type: DataTypes.STRING,
+            allowNull: false
+        }
     }, {
         tableName: "Menus",
         timestamps: false
