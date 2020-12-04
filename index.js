@@ -18,6 +18,9 @@ const uploadRoutes = require("./routes/upload")
 const menuRoutes = require('./routes/menu')
 
 // Routes
+app.use("/", (req, res) => {
+    res.send("Welcome to ShareD BackEnd")
+})
 app.use("/user", userRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/menus", menuRoutes);
@@ -67,7 +70,7 @@ io.on("connection", (socket) => {
                             // หาว่า user นั้นชื่อว่าอะไรใน database
                             db.User.findOne({ where: { id: user.user_id }, attributes: ["name", "profile_url"] })
                                 .then((res) => {
-                                     // หาชื่อจริง
+                                    // หาชื่อจริง
                                     const firstName = res.name.split(' ')[0]
 
                                     const user = {
