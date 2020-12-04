@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": "@titanserv!4522",
+    "password": "123456",
     "database": "ShareD",
     "host": "127.0.0.1",
     "dialect": "mysql"
