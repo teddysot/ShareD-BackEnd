@@ -18,9 +18,6 @@ const uploadRoutes = require("./routes/upload")
 const menuRoutes = require('./routes/menu')
 
 // Routes
-app.use("/", (req, res) => {
-    res.send("Welcome to ShareD BackEnd")
-})
 app.use("/user", userRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/menus", menuRoutes);
