@@ -40,7 +40,9 @@ io.use(async (socket, next) => {
         const token = socket.handshake.query.token;
         const payload = await jwt.verify(token, process.env.SECRET_KEY);
         socket.userId = payload.id;
-        socket.userName = payload.username
+        socket.username = payload.username
+        socket.profile_url = payload.profile_url
+        socket.role = payload.role
         next();
     } catch (err) { }
 });
@@ -50,7 +52,8 @@ let tableList = []
 const { nanoid } = require('nanoid')
 
 io.on("connection", (socket) => {
-    console.log(`Connected: [${socket.userId}]${socket.userName}`);
+    console.log(`Connected: [${socket.userId}]${socket.username}`);
+
     // หาโต๊ะที่ยัง active ใน database
     db.Table.findAll({ where: { status: "Active" }, attributes: ["table_number", "room_code", "id"] })
         .then((res) => {
@@ -67,11 +70,9 @@ io.on("connection", (socket) => {
                             // หาว่า user นั้นชื่อว่าอะไรใน database
                             db.User.findOne({ where: { id: user.user_id }, attributes: ["name", "profile_url"] })
                                 .then((res) => {
-                                    // หาชื่อจริง
-                                    const firstName = res.name.split(' ')[0]
 
                                     const user = {
-                                        username: firstName,
+                                        username: socket.username,
                                         profile_url: res.profile_url
                                     }
                                     newUsers.push(user)
@@ -94,7 +95,7 @@ io.on("connection", (socket) => {
         })
 
     socket.on("disconnect", () => {
-        console.log(`Disconnected: [${socket.userId}]${socket.userName}`);
+        console.log(`Disconnected: [${socket.userId}]${socket.username}`);
     });
 
     // Input Code
@@ -108,8 +109,15 @@ io.on("connection", (socket) => {
                 tableList.map(table => {
                     // ให้ตรวจสอบ tableCode ถ้ามีก็ส่งข้อมูลไปบรรทัดต่อไป
                     if (table.code === tableCode) {
-                        // ข้อมูล user เก็บไว้ใน array users
-                        table.users.push(socket.userName)
+                        const result = table.users.filter((user) => user.username === socket.username)
+                        if (!result) {
+                            const user = {
+                                username: socket.username,
+                                profile_url: socket.profile_url
+                            }
+                            // ข้อมูล user เก็บไว้ใน array users
+                            table.users.push(user)
+                        }
                         // join เข้าห้อง
                         socket.join(`${tableCode}`)
                         // io.in ส่งให้ทุกคนที่อยู่ในห้อง .emit ส่งรายชื่อคนในห้องกลับไปหาไปฝั่ง front
@@ -156,6 +164,7 @@ io.on("connection", (socket) => {
             })
 
         io.emit('fetchTable', { tableList })
+        socket.join(`${tableCode}`)
     })
 });
 

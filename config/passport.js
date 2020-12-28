@@ -9,7 +9,6 @@ const option = {
 
 const jwtStrategy = new Strategy(option, async (payload, done) => {
   const targetUser = await db.User.findOne({ where: { id: payload.id } });
-
   if (targetUser && targetUser.isConfirmed) {
     done(null, targetUser);
   } else {

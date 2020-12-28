@@ -67,7 +67,16 @@ const login = async (req, res) => {
                 isConfirmed: targetUser.isConfirmed
             }, process.env.SECRET_KEY, { expiresIn: 3600 });
             res.status(200).send({
-                token
+                token,
+                id: targetUser.id,
+                username: targetUser.username,
+                email: targetUser.email,
+                phone_number: targetUser.phone_number,
+                fname: name[0],
+                lname: name[1],
+                profile_url: targetUser.profile_url,
+                role: targetUser.role,
+                isConfirmed: targetUser.isConfirmed
             });
         } else {
             res.status(400).send({ message: "Username or password incorrect." });
@@ -76,6 +85,11 @@ const login = async (req, res) => {
         res.status(400).send({ message: "Username or password incorrect." });
     }
 };
+
+const getRole = async (req, res) => {
+    const role = req.user.role
+    res.send({ role })
+}
 
 const getUserById = async (req, res) => {
     const userId = req.params.userId;
@@ -122,10 +136,21 @@ function sendEmail(email, otp) {
     });
 }
 
+const getUserInfo = async (req, res) => {
+    const { username, email, phone_number, name, profile_url, role, isConfirmed } = req.user
+    const splitName = name.split(' ')
+    const fname = splitName[0]
+    const lname = splitName[1]
+
+    res.send({ user: { username, email, phone_number, fname, lname, profile_url, role, isConfirmed } })
+}
+
 module.exports = {
     register,
     login,
     getUserById,
     verifyUser,
     sendOTP,
+    getRole,
+    getUserInfo
 };
