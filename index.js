@@ -55,44 +55,46 @@ io.on("connection", (socket) => {
     console.log(`Connected: [${socket.userId}]${socket.username}`);
 
     // หาโต๊ะที่ยัง active ใน database
-    db.Table.findAll({ where: { status: "Active" }, attributes: ["table_number", "room_code", "id"] })
-        .then((res) => {
-            const newTableList = []
-            // loop ไปทีละโต๊ะ
-            res.map((table) => {
-                const { id, table_number, room_code } = table
-                const newUsers = []
-                //หา user ว่าใครอยู่ในโต๊ะนั้นบ้าง
-                db.UserTable.findAll({ where: { table_id: id }, attributes: ["user_id"] })
-                    .then((res) => {
-                        //loop เข้าไปในข้อมูลของ user ในโต๊ะนั้น
-                        res.map((user) => {
-                            // หาว่า user นั้นชื่อว่าอะไรใน database
-                            db.User.findOne({ where: { id: user.user_id }, attributes: ["name", "profile_url"] })
-                                .then((res) => {
+    // db.Table.findAll({ where: { status: "Active" }, attributes: ["table_number", "room_code", "id"] })
+    //     .then((res) => {
+    //         const newTableList = []
+    //         // loop ไปทีละโต๊ะ
+    //         res.map((table) => {
+    //             const { id, table_number, room_code } = table
+    //             const newUsers = []
+    //             //หา user ว่าใครอยู่ในโต๊ะนั้นบ้าง
+    //             db.UserTable.findAll({ where: { table_id: id }, attributes: ["user_id"] })
+    //                 .then((res) => {
+    //                     //loop เข้าไปในข้อมูลของ user ในโต๊ะนั้น
+    //                     res.map((user) => {
+    //                         // หาว่า user นั้นชื่อว่าอะไรใน database
+    //                         db.User.findOne({ where: { id: user.user_id }, attributes: ["name", "profile_url"] })
+    //                             .then((res) => {
 
-                                    const user = {
-                                        username: socket.username,
-                                        profile_url: res.profile_url
-                                    }
-                                    newUsers.push(user)
-                                })
-                        })
-                    })
-                // ดึงค่ามาใส่ในโต๊ะใหม่
-                const newTable = {
-                    users: newUsers,
-                    number: table_number,
-                    code: room_code// Code จากข้างบน
-                }
-                // เพิ่มเข้าไปใน list ใหม่ของโต๊ะ
-                newTableList.push(newTable)
-                // เปลี่ยน list โต๊ะเก่าเป็น list โต๊ะใหม่
-                tableList = newTableList
-            })
-            // ส่งข้อมูลไปให้ fontend ของทุกคน
-            io.emit('fetchTable', { tableList })
-        })
+    //                                 const user = {
+    //                                     username: socket.username,
+    //                                     profile_url: res.profile_url
+    //                                 }
+    //                                 newUsers.push(user)
+    //                             })
+    //                     })
+    //                 })
+    //             // ดึงค่ามาใส่ในโต๊ะใหม่
+    //             const newTable = {
+    //                 users: newUsers,
+    //                 number: table_number,
+    //                 code: room_code// Code จากข้างบน
+    //             }
+    //             // เพิ่มเข้าไปใน list ใหม่ของโต๊ะ
+    //             newTableList.push(newTable)
+    //             // เปลี่ยน list โต๊ะเก่าเป็น list โต๊ะใหม่
+    //             tableList = newTableList
+    //         })
+    //         // ส่งข้อมูลไปให้ fontend ของทุกคน
+    //         io.emit('fetchTable', { tableList })
+    //     })
+
+    io.emit('fetchTable', { tableList })
 
     socket.on("disconnect", () => {
         console.log(`Disconnected: [${socket.userId}]${socket.username}`);
@@ -102,40 +104,99 @@ io.on("connection", (socket) => {
     socket.on("joinTable", (res) => {
         const { tableCode } = res
         // หาใน database ว่ามี Table Code อยู่ไหม
-        db.Table.findOne({ where: { room_code: tableCode } })
-            // หาเจอ
-            .then(res => {
-                // เข้าลูปหา table code ใน table list
-                tableList.map(table => {
-                    // ให้ตรวจสอบ tableCode ถ้ามีก็ส่งข้อมูลไปบรรทัดต่อไป
-                    if (table.code === tableCode) {
-                        const result = table.users.filter((user) => user.username === socket.username)
-                        if (!result) {
-                            const user = {
-                                username: socket.username,
-                                profile_url: socket.profile_url
-                            }
-                            // ข้อมูล user เก็บไว้ใน array users
-                            table.users.push(user)
-                        }
-                        // join เข้าห้อง
-                        socket.join(`${tableCode}`)
-                        // io.in ส่งให้ทุกคนที่อยู่ในห้อง .emit ส่งรายชื่อคนในห้องกลับไปหาไปฝั่ง front
-                        io.in(`${tableCode}`).emit('joinTable', { users: table.users })
+        // db.Table.findOne({ where: { room_code: tableCode } })
+        //     // หาเจอ
+        //     .then(res => {
+        //         // เข้าลูปหา table code ใน table list
+        //         tableList.map(table => {
+        //             // ให้ตรวจสอบ tableCode ถ้ามีก็ส่งข้อมูลไปบรรทัดต่อไป
+        //             if (table.code === tableCode) {
+        //                 const result = table.users.filter((user) => user.username === socket.username)
+        //                 if (!result) {
+        //                     const user = {
+        //                         username: socket.username,
+        //                         profile_url: socket.profile_url
+        //                     }
+        //                     // ข้อมูล user เก็บไว้ใน array users
+        //                     table.users.push(user)
+        //                 }
+        //                 // join เข้าห้อง
+        //                 socket.join(`${tableCode}`)
+        //                 // io.in ส่งให้ทุกคนที่อยู่ในห้อง .emit ส่งรายชื่อคนในห้องกลับไปหาไปฝั่ง front
+        //                 io.in(`${tableCode}`).emit('joinTable', { users: table.users })
+        //             }
+        //             // หาใน server ไม่เจอ
+        //             else {
+        //                 socket.emit("joinTable", 404)
+        //             }
+        //         })
+        //     })
+        //     // หาใน database ไม่เจอ
+        //     .catch(err => {
+        //         // ถ้าหาไม่เจอส่งข้อความแจ้ง users ว่าไม่มีข้อมูล
+        //         socket.emit("joinTable", 404)
+        //     })
+
+
+        tableList.map(table => {
+            // ให้ตรวจสอบ tableCode ถ้ามีก็ส่งข้อมูลไปบรรทัดต่อไป
+            if (table.code === tableCode) {
+                const result = table.users.filter((user) => user.username === socket.username)
+                if (result.length === 0) {
+                    console.log(result);
+                    const user = {
+                        username: socket.username,
+                        profile_url: socket.profile_url
                     }
-                    // หาใน server ไม่เจอ
-                    else {
-                        socket.emit("joinTable", 404)
-                    }
-                })
-            })
-            // หาใน database ไม่เจอ
-            .catch(err => {
-                // ถ้าหาไม่เจอส่งข้อความแจ้ง users ว่าไม่มีข้อมูล
+                    // ข้อมูล user เก็บไว้ใน array users
+                    table.users.push(user)
+                }
+                // join เข้าห้อง
+                socket.join(`${tableCode}`)
+                // io.in ส่งให้ทุกคนที่อยู่ในห้อง .emit ส่งรายชื่อคนในห้องกลับไปหาไปฝั่ง front
+                console.log(table.users);
+                io.in(`${tableCode}`).emit('joinTable', { users: table.users, tableList, tableCode })
+                console.log(`${socket.username} joined ${tableCode}`);
+            }
+            // หาใน server ไม่เจอ
+            else {
                 socket.emit("joinTable", 404)
-            })
+            }
 
+            return table
+        })
+    })
 
+    socket.on('viewTable', (res) => {
+        socket.join(`${res.tableCode}`)
+    })
+
+    socket.on('leaveRoom', (res) => {
+        socket.leave(`${res.tableCode}`)
+    })
+
+    socket.on('readyToOrder', (res) => {
+        const { tableCode } = res
+        io.in(`${tableCode}`).emit('readyToOrder')
+    })
+
+    socket.on('confirmOrder', (res) => {
+        const { tableCode } = res
+        io.in(`${tableCode}`).emit('confirmOrder')
+    })
+
+    socket.on('newOrder', (res) => {
+        const { tableCode, order } = res
+        tableList.map(table => {
+            // ให้ตรวจสอบ tableCode ถ้ามีก็ส่งข้อมูลไปบรรทัดต่อไป
+            if (table.code === tableCode) {
+                if (!table.orders) {
+                    table.orders = []
+                }
+                table.orders.push(order)
+                io.in(`${tableCode}`).emit('newOrder', { orders: table.orders, users: table.users, tableCode, tableNumber: table.number })
+            }
+        })
     })
 
     socket.on('createTable', (res) => {
@@ -148,20 +209,24 @@ io.on("connection", (socket) => {
         const newTable = {
             users: [],
             number: tableNumber,
-            code: tableCode// Code จากข้างบน
+            code: tableCode,// Code จากข้างบน
+            orders: []
         }
 
         console.log(`createTable ${tableCode} ${tableNumber}`);
         // Update Database
-        db.Table.create({ table_number: tableNumber, room_code: tableCode, total_price: 0, status: "Active" })
-            .then((res) => {
-                tableList.push(newTable)
-                console.log('tableCode', tableCode)
-                socket.emit('createTable', { tableCode, status: 200 })
-            })
-            .catch((err) => {
-                socket.emit('createTable', { status: 400 })
-            })
+        // db.Table.create({ table_number: tableNumber, room_code: tableCode, total_price: 0, status: "Active" })
+        //     .then((res) => {
+        //         tableList.push(newTable)
+        //         console.log('tableCode', tableCode)
+        //         socket.emit('createTable', { tableCode, status: 200 })
+        //     })
+        //     .catch((err) => {
+        //         socket.emit('createTable', { status: 400 })
+        //     })
+
+        tableList.push(newTable)
+        socket.emit('createTable', { tableCode, status: 200 })
 
         io.emit('fetchTable', { tableList })
         socket.join(`${tableCode}`)

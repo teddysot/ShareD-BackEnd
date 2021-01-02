@@ -4,7 +4,7 @@
   "description": "ShareD-BackEnd",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,9 @@
     "url": "https://github.com/teddysot/ShareD-BackEnd/issues"
   },
   "homepage": "https://github.com/teddysot/ShareD-BackEnd#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
